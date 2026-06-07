@@ -9,13 +9,18 @@ import SwiftUI
 
 struct MenüVie: View {
     @Binding var selectedItem: String
+    let onSelect: (String) -> Void
 
     private let menuItems = [
         "Fortsetzen", "Neues Spiel", "Optionen", "Verlassen",
     ]
 
-    init(selectedItem: Binding<String> = .constant("Neues Spiel")) {
+    init(
+        selectedItem: Binding<String> = .constant("Neues Spiel"),
+        onSelect: @escaping (String) -> Void = { _ in }
+    ) {
         self._selectedItem = selectedItem
+        self.onSelect = onSelect
     }
 
     var body: some View {
@@ -50,6 +55,7 @@ struct MenüVie: View {
                                 isSelected: selectedItem == item
                             ) {
                                 selectedItem = item
+                                onSelect(item)
                             }
                         }
                     }

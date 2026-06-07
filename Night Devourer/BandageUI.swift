@@ -366,7 +366,7 @@ struct GlobalBandageFooter: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            ForEach(AppTab.allCases) { tab in
+            ForEach(AppTab.footerTabs) { tab in
                 BandageTabButton(
                     title: tab.title,
                     systemImage: tab.systemImage,
