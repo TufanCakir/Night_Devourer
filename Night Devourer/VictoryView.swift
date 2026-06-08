@@ -29,6 +29,21 @@ struct BattleResult: Equatable {
             diamond: defeatedEnemies >= 6 ? 1 : 0
         )
     }
+
+    static func rewards(for defeatedEnemies: Int, chapter: StoryChapter)
+        -> BattleResult
+    {
+        BattleResult(
+            defeatedEnemies: defeatedEnemies,
+            xp: chapter.reward.xp,
+            coins: chapter.reward.coins,
+            crystals: chapter.reward.crystals,
+            ruby: chapter.reward.ruby,
+            saphir: chapter.reward.saphir,
+            smaragd: chapter.reward.smaragd,
+            diamond: chapter.reward.diamond
+        )
+    }
 }
 
 struct VictoryView: View {

@@ -1,0 +1,80 @@
+{
+    "chapters": [
+        {
+            "id": "story_1_1",
+            "title": "Verlassene Gasse",
+            "subtitle": "Story 1-1",
+            "previewImage": "nd_bg_1",
+            "backgroundImage": "nd_bg_1",
+            "enemyIds": [
+                "wrapped_scout",
+                "wrapped_greate",
+                "wrapped_brute"
+            ],
+            "reward": {
+                "xp": 135,
+                "coins": 240,
+                "crystals": 6,
+                "ruby": 1,
+                "saphir": 0,
+                "smaragd": 0,
+                "diamond": 0
+            },
+            "drops": [
+                {
+                    "currency": "coins",
+                    "min": 60,
+                    "max": 90
+                },
+                {
+                    "currency": "crystals",
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "currency": "ruby",
+                    "min": 0,
+                    "max": 1
+                }
+            ]
+        },
+        {
+            "id": "story_1_2",
+            "title": "Nasse Katakomben",
+            "subtitle": "Story 1-2",
+            "previewImage": "nd_bg_2",
+            "backgroundImage": "nd_bg_2",
+            "enemyIds": [
+                "wrapped_scout",
+                "wrapped_greate",
+                "wrapped_brute"
+            ],
+            "reward": {
+                "xp": 180,
+                "coins": 320,
+                "crystals": 8,
+                "ruby": 1,
+                "saphir": 1,
+                "smaragd": 0,
+                "diamond": 0
+            },
+            "drops": [
+                {
+                    "currency": "coins",
+                    "min": 80,
+                    "max": 120
+                },
+                {
+                    "currency": "crystals",
+                    "min": 2,
+                    "max": 4
+                },
+                {
+                    "currency": "saphir",
+                    "min": 0,
+                    "max": 1
+                }
+            ]
+        }
+    ]
+}

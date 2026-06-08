@@ -10,6 +10,7 @@ import SwiftUI
 enum AppTab: String, CaseIterable, Identifiable {
     case menu
     case saves
+    case chapters
     case game
     case victory
     case loadout
@@ -26,6 +27,8 @@ enum AppTab: String, CaseIterable, Identifiable {
             "Menu"
         case .saves:
             "Spielstaende"
+        case .chapters:
+            "Chapter"
         case .game:
             "Game"
         case .victory:
@@ -45,6 +48,8 @@ enum AppTab: String, CaseIterable, Identifiable {
             "moon.fill"
         case .saves:
             "folder.fill"
+        case .chapters:
+            "map.fill"
         case .game:
             "figure.walk"
         case .victory:
@@ -64,6 +69,7 @@ struct RootView: View {
     @State private var selectedMenuItem = "Neues Spiel"
     @State private var saves: [SaveSlot] = []
     @State private var activeSave: SaveSlot?
+    @State private var activeBattleConfig = BattleConfig.fallback
     @State private var battleResult = BattleResult.rewards(for: 0)
 
     var body: some View {
@@ -73,7 +79,9 @@ struct RootView: View {
             currentView
                 .animation(.easeInOut(duration: 0.22), value: selection)
 
-            if selection != .game && selection != .victory {
+            if selection != .chapters && selection != .game
+                && selection != .victory
+            {
                 VStack(spacing: 0) {
                     GlobalBandageHeader(currentTab: selection)
                     Spacer()
@@ -100,16 +108,28 @@ struct RootView: View {
                 saves: $saves,
                 onLoad: { save in
                     activeSave = save
-                    selection = .game
+                    selection = .chapters
                 },
                 onBack: {
                     selection = .menu
                 }
             )
             .transition(.opacity.combined(with: .offset(y: 12)))
+        case .chapters:
+            ChapterSelectionView(
+                onStart: { config in
+                    activeBattleConfig = config
+                    selection = .game
+                },
+                onBack: {
+                    selection = .saves
+                }
+            )
+            .transition(.opacity.combined(with: .offset(y: 12)))
         case .game:
             GameView(
                 saveSlot: activeSave,
+                battleConfig: activeBattleConfig,
                 onVictory: { result in
                     battleResult = result
                     applyBattleResult(result)
@@ -152,7 +172,7 @@ struct RootView: View {
     private func continueLatestSave() {
         if let latestSave = saves.max(by: { $0.lastPlayed < $1.lastPlayed }) {
             activeSave = latestSave
-            selection = .game
+            selection = .chapters
         } else {
             selection = .saves
         }

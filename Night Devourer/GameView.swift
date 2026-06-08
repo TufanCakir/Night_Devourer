@@ -10,15 +10,18 @@ import SwiftUI
 
 struct GameView: View {
     let saveSlot: SaveSlot?
+    let battleConfig: BattleConfig
     let onVictory: (BattleResult) -> Void
 
     @State private var scene = NightGameScene()
 
     init(
         saveSlot: SaveSlot? = nil,
+        battleConfig: BattleConfig = .fallback,
         onVictory: @escaping (BattleResult) -> Void = { _ in }
     ) {
         self.saveSlot = saveSlot
+        self.battleConfig = battleConfig
         self.onVictory = onVictory
     }
 
@@ -40,6 +43,7 @@ struct GameView: View {
         .onAppear {
             scene.scaleMode = .resizeFill
             scene.setSaveSlot(saveSlot)
+            scene.setBattleConfig(battleConfig)
             scene.onVictory = onVictory
         }
     }
@@ -78,20 +82,23 @@ final class NightGameScene: SKScene {
     private let frontLayer = SKNode()
     private let roadLayer = SKNode()
     private let bandageLayer = SKNode()
-    private let playerNode = SKSpriteNode(imageNamed: "nightt_devourer")
-    private let enemyImageName = "things"
-    private lazy var enemyNode = SKSpriteNode(imageNamed: enemyImageName)
+    private var playerNode = SKSpriteNode(
+        imageNamed: BattleConfig.fallback.player.assetName
+    )
+    private var enemyNode = SKSpriteNode(
+        imageNamed: BattleConfig.fallback.enemies[0].assetName
+    )
     private let statusLabel = SKLabelNode(fontNamed: "Georgia-Bold")
 
     private var isSneaking = false
     private var isResolvingAttack = false
     private var defeatedEnemies = 0
-    private let targetEnemyCount = 3
     private var lastUpdateTime: TimeInterval = 0
-    private var enemyDepth: CGFloat = 0.46
+    private var enemyDepth: CGFloat = 0.60
     private let roadSpeed: CGFloat = 0.42
     private let enemySpeed: CGFloat = 0.065
     private var saveSlot: SaveSlot?
+    private var battleConfig = BattleConfig.fallback
     var onVictory: ((BattleResult) -> Void)?
 
     func setSaveSlot(_ saveSlot: SaveSlot?) {
@@ -99,6 +106,16 @@ final class NightGameScene: SKScene {
 
         if let saveSlot {
             setStatus(saveSlot.name.uppercased())
+        }
+    }
+
+    func setBattleConfig(_ battleConfig: BattleConfig) {
+        self.battleConfig = battleConfig
+
+        if worldNode.parent != nil {
+            rebuildSpritesForCurrentConfig()
+            layoutScene()
+            setStatus(battleConfig.chapter.subtitle.uppercased())
         }
     }
 
@@ -140,7 +157,7 @@ final class NightGameScene: SKScene {
 
     override func update(_ currentTime: TimeInterval) {
         guard size.width > 0, size.height > 0 else { return }
-        guard defeatedEnemies < targetEnemyCount else { return }
+        guard defeatedEnemies < battleConfig.targetEnemyCount else { return }
 
         if lastUpdateTime == 0 {
             lastUpdateTime = currentTime
@@ -223,7 +240,7 @@ final class NightGameScene: SKScene {
 
     private func configureBackgrounds() {
         makeBackground(
-            imageName: "nd_bg_1",
+            imageName: battleConfig.backgroundImage,
             in: frontLayer,
             zPosition: -35,
             alpha: 1.0
@@ -307,15 +324,17 @@ final class NightGameScene: SKScene {
 
     private func configurePlayer() {
         playerNode.anchorPoint = CGPoint(x: 0.5, y: 0.0)
-        playerNode.alpha = 0.82
+        playerNode.alpha = 1
         playerNode.zPosition = 10
         worldNode.addChild(playerNode)
     }
 
     private func configureEnemy() {
+        updateEnemyTexture()
         enemyNode.anchorPoint = CGPoint(x: 0.5, y: 0.0)
-        enemyNode.alpha = 0.86
-        enemyNode.zPosition = 6
+        enemyNode.alpha = 1
+        enemyNode.isHidden = false
+        enemyNode.zPosition = 16
         worldNode.addChild(enemyNode)
     }
 
@@ -350,7 +369,7 @@ final class NightGameScene: SKScene {
 
         statusLabel.position = CGPoint(
             x: size.width * 0.5,
-            y: size.height * 0.60
+            y: size.height * 0.43
         )
     }
 
@@ -514,8 +533,8 @@ final class NightGameScene: SKScene {
 
         enemyDepth += deltaTime * enemySpeed
 
-        if enemyDepth > 0.66 {
-            enemyDepth = 0.66
+        if enemyDepth > 0.70 {
+            enemyDepth = 0.70
             let warning = isSneaking ? "JETZT" : "ZU NAH"
             if statusLabel.text != warning {
                 setStatus(warning)
@@ -526,17 +545,18 @@ final class NightGameScene: SKScene {
     }
 
     private func layoutEnemy() {
-        let horizon = CGPoint(x: size.width * 0.5, y: size.height * 0.72)
-        let near = CGPoint(x: size.width * 0.5, y: size.height * 0.49)
+        let horizon = CGPoint(x: size.width * 0.5, y: size.height * 0.75)
+        let near = CGPoint(x: size.width * 0.5, y: size.height * 0.50)
         let curved = enemyDepth * enemyDepth
         let x = horizon.x + (near.x - horizon.x) * curved
         let y = horizon.y + (near.y - horizon.y) * curved
-        let scale = enemyScale * (0.42 + curved * 0.54)
+        let scale = enemyScale * (5 + curved * 0.82)
 
         enemyNode.position = CGPoint(x: x, y: y)
         enemyNode.setScale(scale)
-        enemyNode.alpha = 0.35 + curved * 0.65
-        enemyNode.zPosition = 4 + curved * 5
+        enemyNode.alpha = 0.72 + curved * 0.28
+        enemyNode.isHidden = false
+        enemyNode.zPosition = 16 + curved * 1
     }
 
     private func performSuccessfulAttack() {
@@ -594,7 +614,7 @@ final class NightGameScene: SKScene {
         defeatedEnemies += 1
         pulseForwardFeedback()
 
-        if defeatedEnemies >= targetEnemyCount {
+        if defeatedEnemies >= battleConfig.targetEnemyCount {
             finishBattle()
         } else {
             spawnNextEnemy()
@@ -612,7 +632,10 @@ final class NightGameScene: SKScene {
                 .run { [weak self] in
                     guard let self else { return }
                     self.onVictory?(
-                        BattleResult.rewards(for: self.defeatedEnemies)
+                        BattleResult.rewards(
+                            for: self.defeatedEnemies,
+                            chapter: self.battleConfig.chapter
+                        )
                     )
                 },
             ])
@@ -641,15 +664,33 @@ final class NightGameScene: SKScene {
     }
 
     private func hideEnemyForDepthSpawn() {
-        enemyDepth = 0.34
+        enemyDepth = 0.58
         layoutEnemy()
     }
 
     private func spawnNextEnemy() {
         enemyNode.removeAllActions()
+        updateEnemyTexture()
         hideEnemyForDepthSpawn()
         isResolvingAttack = false
         setStatus("ZIEL \(defeatedEnemies + 1)")
+    }
+
+    private func rebuildSpritesForCurrentConfig() {
+        frontLayer.removeAllChildren()
+        configureBackgrounds()
+
+        playerNode.texture = SKTexture(
+            imageNamed: battleConfig.player.assetName
+        )
+        updateEnemyTexture()
+    }
+
+    private func updateEnemyTexture() {
+        let enemyIndex = min(defeatedEnemies, battleConfig.enemies.count - 1)
+        let enemy = battleConfig.enemies[enemyIndex]
+        enemyNode.texture = SKTexture(imageNamed: enemy.assetName)
+        enemyNode.isHidden = false
     }
 
     private func setStatus(_ text: String) {
@@ -670,7 +711,7 @@ final class NightGameScene: SKScene {
     }
 
     private var enemyScale: CGFloat {
-        min(size.width / 620, size.height / 980) * 0.30
+        min(size.width / 810, size.height / 980) * 0.72
     }
 
 }
@@ -682,5 +723,11 @@ extension SKSpriteNode {
 }
 
 #Preview {
-    GameView()
+    let chapter =
+        GameContentStore.loadChapters().first ?? BattleConfig.fallback.chapter
+
+    GameView(
+        saveSlot: SaveSlot(name: "Preview Save"),
+        battleConfig: GameContentStore.makeBattleConfig(for: chapter)
+    )
 }

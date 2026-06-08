@@ -1,0 +1,36 @@
+{
+    "characters": [
+        {
+            "id": "player_night_devourer",
+            "name": "Night Devourer",
+            "assetName": "nightt_devourer",
+            "role": "player",
+            "baseHealth": 733,
+            "baseDamage": 34
+        },
+        {
+            "id": "wrapped_scout",
+            "name": "Wrapped Scout",
+            "assetName": "sphinx",
+            "role": "enemy",
+            "baseHealth": 90,
+            "baseDamage": 12
+        },
+        {
+            "id": "wrapped_greate",
+            "name": "Wrapped Greate",
+            "assetName": "greate_sphinx",
+            "role": "enemy",
+            "baseHealth": 120,
+            "baseDamage": 15
+        },
+        {
+            "id": "wrapped_brute",
+            "name": "Wrapped Brute",
+            "assetName": "gold_greate_sphinx",
+            "role": "enemy",
+            "baseHealth": 220,
+            "baseDamage": 20
+        }
+    ]
+}
